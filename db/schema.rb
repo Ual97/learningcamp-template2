@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_08_29_191410) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_22_141829) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -92,26 +92,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_29_191410) do
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
   end
 
-  create_table "preferences", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description", null: false
-    t.boolean "restriction", default: false, null: false
-    t.bigint "user_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_preferences_on_user_id"
-  end
-
-  create_table "recipes", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description", null: false
-    t.bigint "user_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.text "ingredients", default: "", null: false
-    t.index ["user_id"], name: "index_recipes_on_user_id"
-  end
-
   create_table "settings", force: :cascade do |t|
     t.string "key", null: false
     t.string "value"
@@ -147,7 +127,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_29_191410) do
     t.string "invited_by_type"
     t.bigint "invited_by_id"
     t.integer "invitations_count", default: 0
-    t.boolean "preferences_enabled", default: true, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
     t.index ["invited_by_id"], name: "index_users_on_invited_by_id"
@@ -157,6 +136,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_08_29_191410) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "preferences", "users"
-  add_foreign_key "recipes", "users"
 end
