@@ -13,11 +13,14 @@ class RecipesController < ApplicationController
   end
 
   def create
-    @recipe = current_user.recipes.build(recipe_params)
+    recipe_service = RecipeGeneratorService.new(recipe_params[:ingredients], current_user.id)
 
-    if @recipe.save
+    begin
+      generated_recipe = recipe_service.call
+
       redirect_to recipes_path, notice: 'Recipe was successfully created.'
-    else
+    rescue RecipeGeneratorServiceError => e
+      flash[:alert] = "Error generating recipe: #{e.message}"
       render :new, status: :unprocessable_entity
     end
   end
