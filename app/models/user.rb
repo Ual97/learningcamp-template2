@@ -55,6 +55,9 @@ class User < ApplicationRecord
   #adding association to preferences
   has_many :preferences, dependent: :destroy
 
+  #adding association to recipes
+  has_many :recipes, dependent: :destroy
+
   attribute :impersonated_by, :integer
 
   before_validation :init_uid
