@@ -24,7 +24,7 @@ Rails.application.routes.draw do
 
   resources :users
   resources :preferences, only: [:index, :new, :create, :show, :edit, :remove]
-  resources :recipes, only: %i[index]
+  resources :recipes, only: [:new, :create, :index, :show]
 
   namespace :api do
     namespace :v1, defaults: { format: :json } do
