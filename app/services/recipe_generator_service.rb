@@ -41,14 +41,33 @@ class RecipeGeneratorService
   end
 
   def prompt
-    <<~CONTENT
-      You are a chef assistant designed to create recipes given a certain list of ingredients people may have in their homes, you are expected to send a JSON in the response with the following format: 
-      {
-        "name": "Dish Name",
-        "content": ""
-      }
-      Please respond with the recipe details in Spanish.
-    CONTENT
+    preferences_text = format_preferences
+    prompt_content = <<~CONTENT
+  You are a chef assistant designed to create recipes given a certain list of ingredients people may have in their homes. 
+  Take into account the user's preferences and restrictions strictly. Ensure that the recipe does not include any of the restricted ingredients and respects the preferences(will be given in spanish): 
+  User preferences: #{preferences_text}. 
+  If any ingredient conflicts with these restrictions, exclude it from the recipe.
+  
+  You are expected to send a JSON in the response with the following format: 
+  {
+    "name": "Dish Name",
+    "content": ""
+  }
+
+  Ensure the recipe respects all restrictions and preferences. Please respond with the recipe details in Spanish.
+CONTENT
+
+    Rails.logger.info "Generated prompt: #{prompt_content}"
+    prompt_content
+  end
+
+  #formateo las preferences en una cadena para enviar al prompt
+  def format_preferences
+    return "None" if user.preferences.blank?
+
+    user.preferences.limit(Preference::MAX_PREFERENCES).map do |preference|
+      "#{preference.name}: #{preference.description} (Restriction: #{preference.restriction ? 'Yes' : 'No'})"
+    end.join(", ")
   end
 
   def new_message
