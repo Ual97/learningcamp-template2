@@ -147,4 +147,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_11_01_181306) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "preferences", "users", validate: false
 end
