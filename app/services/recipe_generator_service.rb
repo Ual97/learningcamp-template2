@@ -41,11 +41,10 @@ class RecipeGeneratorService
   end
 
   def prompt
-    preferences_text = format_preferences
     prompt_content = <<~CONTENT
   You are a chef assistant designed to create recipes given a certain list of ingredients people may have in their homes. 
   Take into account the user's preferences and restrictions strictly. Ensure that the recipe does not include any of the restricted ingredients and respects the preferences(will be given in spanish): 
-  User preferences: #{preferences_text}. 
+  User preferences: #{format_preferences}. 
   If any ingredient conflicts with these restrictions, exclude it from the recipe.
   
   You are expected to send a JSON in the response with the following format: 
@@ -56,12 +55,8 @@ class RecipeGeneratorService
 
   Ensure the recipe respects all restrictions and preferences. Please respond with the recipe details in Spanish.
 CONTENT
-
-    Rails.logger.info "Generated prompt: #{prompt_content}"
-    prompt_content
   end
 
-  #formateo las preferences en una cadena para enviar al prompt
   def format_preferences
     return "None" if user.preferences.blank?
 
@@ -80,39 +75,37 @@ CONTENT
     @openai_client ||= OpenAI::Client.new
   end
 
+  def recipe_info(name, content, message)
+    Recipe.new(
+      name: name,
+      description: content,
+      ingredients: message,
+      user_id: user.id
+    )
+  end
+
   def create_recipe(response)
   
-    # Parseo la response en el formato JSON
     recipe_data_str = response.dig('choices', 0, 'message', 'content')
   
-    # Checkeo que la response no este vacia
     if recipe_data_str.blank?
       raise RecipeGeneratorServiceError, 'Recipe content is empty.'
     end
   
-    # Parseo el contenido JSON dentro de la cadena
     begin
       recipe_data = JSON.parse(recipe_data_str)
     rescue JSON::ParserError => e
       raise RecipeGeneratorServiceError, "Failed to parse recipe content: #{e.message}"
     end
   
-    # Asigno a una variable el nombre y el contenido de la respuesta que obtengo de la API call
     name = recipe_data['name']
     content = recipe_data['content']
   
-    # Checkeo que tanto el nombre como el contenido no sean vacíos
     if name.blank? || content.blank?
       raise RecipeGeneratorServiceError, 'Invalid recipe data: Name or content is missing.'
     end
-  
-    # Creo la receta con los valores obtenidos y el id del usuario actualmente loggeado
-    recipe = Recipe.new(
-      name: name,
-      description: content,
-      ingredients: message,
-      user_id: user.id
-    )
+
+    recipe = recipe_info(name, content, message)
   
     if recipe.save
       return recipe
